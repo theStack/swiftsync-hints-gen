@@ -21,9 +21,26 @@ import pbk
 
 
 class HintsWriter:
-    def __init__(self, filename):
-        # TODO
-        pass
+    def __init__(self, file):
+        self.file = file
+
+    def write_block_bits(self, bitmap):
+        # for each block, write first the number of outputs it contains
+        # and then the bit-encoded data (padded with zero-bits if necessary)
+        writebuf = b''
+        writebuf += len(bitmap).to_bytes(2, 'big')
+        bitpos = 0
+        value = 0
+        for bit in bitmap:
+            value = (value << 1) | bit
+            bitpos += 1
+            if bitpos == 8:
+                writebuf += bytes([value])
+                bitpos = 0
+                value = 0
+        if bitpos != 0:
+            writebuf += bytes([value])
+        self.file.write(writebuf)
 
 
 def main():
@@ -43,7 +60,7 @@ def main():
         sys.exit(1)
 
     if Path(args.output_hints_file).exists():
-        print(f"Error: provided output file '{args.outputs_hints_file}' already exists.")
+        print(f"Error: provided output file '{args.output_hints_file}' already exists.")
         sys.exit(1)
 
     #log = pbk.LoggingConnection()
@@ -64,30 +81,39 @@ def main():
     chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
     print("done.")
 
+    print("Open output hints file... ", end='', flush=True)
+    hints_file = open(args.output_hints_file, 'wb')
+    hints_writer = HintsWriter(hints_file)
+
     for block_height in range(0, snapshot_height+1):
         block_index = chainman.get_block_index_from_height(block_height)
         block_data = chainman.read_block_from_disk(block_index).data
         #print(block_data)
         block = from_binary(CBlock, block_data)
         assert block.is_valid()  # TODO: only do this in a 'thorough' mode
+        outputs_bitmap = []
+        outputs_in_utxo_set = 0
         for tx in block.vtx:
             txid = tx.rehash()
             cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
             outs_in_utxoset = [o[0] for o in cur.fetchall()]
             if len(outs_in_utxoset) == 0:
+                outputs_bitmap.extend([0] * len(tx.vout))
                 continue
 
             for out_idx, txout in enumerate(tx.vout):
                 if out_idx in outs_in_utxoset:
                     print(block_height, out_idx, txout)
-                    # TODO: write bit 1 to file
+                    outputs_bitmap.append(1)
+                    outputs_in_utxo_set += 1
                 else:
-                    # TODO: write bit 0 to file
-                    pass
-        if block_height == 2387:  # TODO: remove me
-            break
+                    outputs_bitmap.append(0)
+
+        hints_writer.write_block_bits(outputs_bitmap)
+        print(f"Block {block_height} has {outputs_in_utxo_set} outputs in UTXO set.")
 
     con.close()
+    hints_writer.close()
 
 
 if __name__ == "__main__":
