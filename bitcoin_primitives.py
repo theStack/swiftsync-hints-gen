@@ -4,7 +4,7 @@
 # Copyright (c) 2010-2022 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Bitcoin test framework primitive and message structures
+"""Bitcoin test framework primitive structures
 
 CBlock, CTransaction, CBlockHeader, CTxIn, CTxOut, etc....:
     data structures that should map to corresponding structures in
@@ -141,16 +141,6 @@ def ser_string_vector(l):
     for sv in l:
         r += ser_string(sv)
     return r
-
-
-def from_hex(obj, hex_string):
-    """Deserialize from a hex string representation (e.g. from RPC)
-
-    Note that there is no complementary helper like e.g. `to_hex` for the
-    inverse operation. To serialize a message object to a hex string, simply
-    use obj.serialize().hex()"""
-    obj.deserialize(BytesIO(bytes.fromhex(hex_string)))
-    return obj
 
 
 # like from_hex, but without the hex part
