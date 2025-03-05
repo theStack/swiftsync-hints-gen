@@ -40,6 +40,7 @@ def main():
     #datadir = Path.home() / ".bitcoin"
     datadir = Path(args.node_datadir)
     print("Loading chain manager... ", end='', flush=True)
+    # TODO: allow specifying the chaint type (unfortunately, the UTXO db doesn't contain that as metadata yet :/)
     #chainman = pbk.load_chainman(datadir, pbk.ChainType.MAINNET)
     chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
     print("done.")
@@ -47,6 +48,8 @@ def main():
     # TODO: read blocks here
     tip = chainman.get_block_index_from_tip()
     print(f"Current block tip: {tip.block_hash.hex} at height {tip.height}")
+
+    con.close()
 
 
 if __name__ == "__main__":
