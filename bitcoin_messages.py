@@ -18,7 +18,6 @@ by tests, compromising their intended effect.
 import copy
 import hashlib
 from io import BytesIO
-import math
 import time
 
 
@@ -28,7 +27,6 @@ def assert_equal(thing1, thing2, *args):
 
 
 COIN = 100000000  # 1 btc in satoshis
-WITNESS_SCALE_FACTOR = 4
 
 
 def sha256(s):
@@ -426,16 +424,6 @@ class CTransaction:
                 return False
         return True
 
-    # Calculate the transaction weight using witness and non-witness
-    # serialization size (does NOT use sigops).
-    def get_weight(self):
-        with_witness_size = len(self.serialize_with_witness())
-        without_witness_size = len(self.serialize_without_witness())
-        return (WITNESS_SCALE_FACTOR - 1) * without_witness_size + with_witness_size
-
-    def get_vsize(self):
-        return math.ceil(self.get_weight() / WITNESS_SCALE_FACTOR)
-
     def __repr__(self):
         return "CTransaction(version=%i vin=%s vout=%s wit=%s nLockTime=%i)" \
             % (self.version, repr(self.vin), repr(self.vout), repr(self.wit), self.nLockTime)
@@ -574,13 +562,6 @@ class CBlock(CBlockHeader):
         if self.calc_merkle_root() != self.hashMerkleRoot:
             return False
         return True
-
-    # Calculate the block weight using witness and non-witness
-    # serialization size (does NOT use sigops).
-    def get_weight(self):
-        with_witness_size = len(self.serialize(with_witness=True))
-        without_witness_size = len(self.serialize(with_witness=False))
-        return (WITNESS_SCALE_FACTOR - 1) * without_witness_size + with_witness_size
 
     def __repr__(self):
         return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s)" \
