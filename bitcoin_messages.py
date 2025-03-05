@@ -28,17 +28,6 @@ def assert_equal(thing1, thing2, *args):
 
 
 COIN = 100000000  # 1 btc in satoshis
-MAX_MONEY = 21000000 * COIN
-
-MSG_TX = 1
-MSG_BLOCK = 2
-MSG_FILTERED_BLOCK = 3
-MSG_CMPCT_BLOCK = 4
-MSG_WTX = 5
-MSG_WITNESS_FLAG = 1 << 30
-MSG_TYPE_MASK = 0xffffffff >> 2
-MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG
-
 WITNESS_SCALE_FACTOR = 4
 
 
@@ -585,13 +574,6 @@ class CBlock(CBlockHeader):
         if self.calc_merkle_root() != self.hashMerkleRoot:
             return False
         return True
-
-    def solve(self):
-        self.rehash()
-        target = uint256_from_compact(self.nBits)
-        while self.sha256 > target:
-            self.nNonce += 1
-            self.rehash()
 
     # Calculate the block weight using witness and non-witness
     # serialization size (does NOT use sigops).
