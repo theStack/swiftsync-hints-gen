@@ -16,7 +16,7 @@ from pathlib import Path
 import sqlite3
 import sys
 
-from bitcoin_messages import CBlock, from_binary
+from bitcoin_primitives import CBlock, from_binary
 import pbk
 
 
