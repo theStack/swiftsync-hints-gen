@@ -29,6 +29,13 @@ def main():
     # TODO: validate input
     #log = pbk.LoggingConnection()
 
+    # open utxo set, determine snapshot height
+    con = sqlite3.connect(args.utxos_sqlite_db)
+    cur = con.cursor()
+    cur.execute("SELECT max(height) from utxos")
+    snapshot_height = cur.fetchone()[0]
+    print(f"UTXO snapshot is at block height {snapshot_height}.")
+
     # TODO: make node_datadir arg optional and set it to this if none is set:
     #datadir = Path.home() / ".bitcoin"
     datadir = Path(args.node_datadir)
