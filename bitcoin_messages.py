@@ -153,11 +153,6 @@ def from_hex(obj, hex_string):
     return obj
 
 
-def tx_from_hex(hex_string):
-    """Deserialize from hex string to a transaction object"""
-    return from_hex(CTransaction(), hex_string)
-
-
 # like from_hex, but without the hex part
 def from_binary(cls, stream):
     """deserialize a binary stream (or bytes object) into an object"""
@@ -392,9 +387,6 @@ class CTransaction:
     def serialize(self):
         return self.serialize_with_witness()
 
-    def getwtxid(self):
-        return hash256(self.serialize())[::-1].hex()
-
     # Recalculate the txid (transaction hash without witness)
     def rehash(self):
         self.sha256 = None
@@ -533,17 +525,6 @@ class CBlock(CBlockHeader):
         for tx in self.vtx:
             tx.calc_sha256()
             hashes.append(ser_uint256(tx.sha256))
-        return self.get_merkle_root(hashes)
-
-    def calc_witness_merkle_root(self):
-        # For witness root purposes, the hash of the
-        # coinbase, with witness, is defined to be 0...0
-        hashes = [ser_uint256(0)]
-
-        for tx in self.vtx[1:]:
-            # Calculate the hashes with witness data
-            hashes.append(ser_uint256(tx.calc_sha256(True)))
-
         return self.get_merkle_root(hashes)
 
     def is_valid(self):
