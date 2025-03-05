@@ -12,12 +12,11 @@ $ ./contrib/utxo-tools/utxo_to_sqlite.py utxos.dat utxos.sqlite3
 $ sqlite3 utxos.sqlite3 "CREATE INDEX idx_height ON utxos (height)"
 """
 import argparse
-from io import BytesIO
 from pathlib import Path
 import sqlite3
 import sys
 
-from bitcoin_messages import CBlock
+from bitcoin_messages import CBlock, from_binary
 import pbk
 
 
@@ -51,8 +50,7 @@ def main():
         block_index = chainman.get_block_index_from_height(block_height)
         block_data = chainman.read_block_from_disk(block_index).data
         #print(block_data)
-        block = CBlock()
-        block.deserialize(BytesIO(block_data))
+        block = from_binary(CBlock, block_data)
         for tx in block.vtx:
             txid = tx.rehash()
             cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
