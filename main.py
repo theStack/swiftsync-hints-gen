@@ -20,14 +20,32 @@ from bitcoin_primitives import CBlock, from_binary
 import pbk
 
 
+class HintsWriter:
+    def __init__(self, filename):
+        # TODO
+        pass
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format (should contain a block height index for fast processing)')
     parser.add_argument('node_datadir', help='path to bitcoin data directory (must be from a non-pruned node)')
+    parser.add_argument('output_hints_file', help='filename of created booster hints file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show more detailed conversion stats on each block')
     args = parser.parse_args()
 
-    # TODO: validate input
+    if not Path(args.utxos_sqlite_db).exists():
+        print(f"Error: provided input file '{args.utxos_sqlite_db}' doesn't exist.")
+        sys.exit(1)
+
+    if not Path(args.node_datadir).exists():
+        print(f"Error: provided input directory '{args.node_datadir}' doesn't exist.")
+        sys.exit(1)
+
+    if Path(args.output_hints_file).exists():
+        print(f"Error: provided output file '{args.outputs_hints_file}' already exists.")
+        sys.exit(1)
+
     #log = pbk.LoggingConnection()
 
     # open utxo set, determine snapshot height
@@ -51,6 +69,7 @@ def main():
         block_data = chainman.read_block_from_disk(block_index).data
         #print(block_data)
         block = from_binary(CBlock, block_data)
+        assert block.is_valid()  # TODO: only do this in a 'thorough' mode
         for tx in block.vtx:
             txid = tx.rehash()
             cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
