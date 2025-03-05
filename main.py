@@ -12,10 +12,12 @@ $ ./contrib/utxo-tools/utxo_to_sqlite.py utxos.dat utxos.sqlite3
 $ sqlite3 utxos.sqlite3 "CREATE INDEX idx_height ON utxos (height)"
 """
 import argparse
+from io import BytesIO
 from pathlib import Path
 import sqlite3
 import sys
 
+from bitcoin_messages import CBlock
 import pbk
 
 
@@ -45,9 +47,19 @@ def main():
     chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
     print("done.")
 
-    # TODO: read blocks here
-    tip = chainman.get_block_index_from_tip()
-    print(f"Current block tip: {tip.block_hash.hex} at height {tip.height}")
+    for block_height in range(0, snapshot_height+1):
+        block_index = chainman.get_block_index_from_height(block_height)
+        block_data = chainman.read_block_from_disk(block_index).data
+        #print(block_data)
+        block = CBlock()
+        block.deserialize(BytesIO(block_data))
+        for tx in block.vtx:
+            txid = tx.rehash()
+            print(f"txid: {txid}")
+            for out_idx, txout in enumerate(tx.vout):
+                print(out_idx, txout)
+                # TODO: check if txid:out_idx is in utxo set, write 1/0 bit accordingly
+        break
 
     con.close()
 
