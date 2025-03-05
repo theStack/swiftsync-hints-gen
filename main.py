@@ -55,11 +55,20 @@ def main():
         block.deserialize(BytesIO(block_data))
         for tx in block.vtx:
             txid = tx.rehash()
-            print(f"txid: {txid}")
+            cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
+            outs_in_utxoset = [o[0] for o in cur.fetchall()]
+            if len(outs_in_utxoset) == 0:
+                continue
+
             for out_idx, txout in enumerate(tx.vout):
-                print(out_idx, txout)
-                # TODO: check if txid:out_idx is in utxo set, write 1/0 bit accordingly
-        break
+                if out_idx in outs_in_utxoset:
+                    print(block_height, out_idx, txout)
+                    # TODO: write bit 1 to file
+                else:
+                    # TODO: write bit 0 to file
+                    pass
+        if block_height == 2387:  # TODO: remove me
+            break
 
     con.close()
 
