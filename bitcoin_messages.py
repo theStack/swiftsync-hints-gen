@@ -21,11 +21,6 @@ from io import BytesIO
 import time
 
 
-def assert_equal(thing1, thing2, *args):
-    if thing1 != thing2 or any(thing1 != arg for arg in args):
-        raise AssertionError("not(%s)" % " == ".join(str(arg) for arg in (thing1, thing2) + args))
-
-
 COIN = 100000000  # 1 btc in satoshis
 
 
@@ -500,7 +495,7 @@ class CBlockHeader:
                time.ctime(self.nTime), self.nBits, self.nNonce)
 
 BLOCK_HEADER_SIZE = len(CBlockHeader().serialize())
-assert_equal(BLOCK_HEADER_SIZE, 80)
+assert BLOCK_HEADER_SIZE == 80
 
 class CBlock(CBlockHeader):
     __slots__ = ("vtx",)
