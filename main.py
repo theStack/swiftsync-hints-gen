@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 import sqlite3
 import sys
+import time
 
 from bitcoin_primitives import CBlock, from_binary
 import pbk
@@ -86,34 +87,29 @@ def main():
     hints_writer = HintsWriter(hints_file)
 
     for block_height in range(0, snapshot_height+1):
+        start_time = time.time()
         block_index = chainman.get_block_index_from_height(block_height)
         block_data = chainman.read_block_from_disk(block_index).data
-        #print(block_data)
         block = from_binary(CBlock, block_data)
-        assert block.is_valid()  # TODO: only do this in a 'thorough' mode
+        #assert block.is_valid()  # TODO: only do this in a 'thorough' mode
         outputs_bitmap = []
         outputs_in_utxo_set = 0
+
         for tx in block.vtx:
             txid = tx.rehash()
             cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
-            outs_in_utxoset = [o[0] for o in cur.fetchall()]
-            if len(outs_in_utxoset) == 0:
-                outputs_bitmap.extend([0] * len(tx.vout))
-                continue
-
-            for out_idx, txout in enumerate(tx.vout):
-                if out_idx in outs_in_utxoset:
-                    print(block_height, out_idx, txout)
-                    outputs_bitmap.append(1)
-                    outputs_in_utxo_set += 1
-                else:
-                    outputs_bitmap.append(0)
+            outputs_bitmap_extended = [0]*len(tx.vout)
+            for row in cur.fetchall():
+                outputs_bitmap_extended[row[0]] = 1
+            outputs_in_utxo_set += sum(outputs_bitmap_extended)
+            outputs_bitmap.extend(outputs_bitmap_extended)
 
         hints_writer.write_block_bits(outputs_bitmap)
-        print(f"Block {block_height} has {outputs_in_utxo_set} outputs in UTXO set.")
+        took_time = time.time() - start_time
+        print(f"Block {block_height} ({len(block.vtx)} txs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
 
     con.close()
-    hints_writer.close()
+    hints_file.close()
 
 
 if __name__ == "__main__":
