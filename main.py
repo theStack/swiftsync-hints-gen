@@ -85,6 +85,7 @@ def main():
     print("Open output hints file... ", end='', flush=True)
     hints_file = open(args.output_hints_file, 'wb')
     hints_writer = HintsWriter(hints_file)
+    total_outputs_utxo_set = 0
 
     for block_height in range(0, snapshot_height+1):
         start_time = time.time()
@@ -95,18 +96,28 @@ def main():
         outputs_bitmap = []
         outputs_in_utxo_set = 0
 
+        txid_vouts = {}
+        cur.execute("SELECT txid, vout FROM utxos WHERE height=?", (block_height,))
+        for txid, vout in cur.fetchall():
+            if txid not in txid_vouts:
+                txid_vouts[txid] = [vout]
+            else:
+                txid_vouts[txid].append(vout)
+
         for tx in block.vtx:
             txid = tx.rehash()
-            cur.execute("SELECT vout FROM utxos WHERE height=? and txid=?", (block_height, txid))
             outputs_bitmap_extended = [0]*len(tx.vout)
-            for row in cur.fetchall():
-                outputs_bitmap_extended[row[0]] = 1
-            outputs_in_utxo_set += sum(outputs_bitmap_extended)
+            if txid in txid_vouts:
+                for vout in txid_vouts[txid]:
+                    outputs_bitmap_extended[vout] = 1
+                outputs_in_utxo_set += sum(outputs_bitmap_extended)
             outputs_bitmap.extend(outputs_bitmap_extended)
 
         hints_writer.write_block_bits(outputs_bitmap)
         took_time = time.time() - start_time
-        print(f"Block {block_height} ({len(block.vtx)} txs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
+        print(f"Block {block_height} ({len(block.vtx)} txs, {len(outputs_bitmap)} outs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
+        total_outputs_utxo_set += outputs_in_utxo_set
+    print(f"Scan finished, found {total_outputs_utxo_set} outputs in UTXO set.")
 
     con.close()
     hints_file.close()
