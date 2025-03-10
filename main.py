@@ -33,7 +33,7 @@ class HintsWriter:
         bitpos = 0
         value = 0
         for bit in bitmap:
-            value = (value << 1) | bit
+            value |= (bit << bitpos)
             bitpos += 1
             if bitpos == 8:
                 writebuf += bytes([value])
