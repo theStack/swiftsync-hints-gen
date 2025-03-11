@@ -1,6 +1,5 @@
 version = 1
-revision = 1
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 [[package]]
 name = "ibd-booster-hints-gen"
