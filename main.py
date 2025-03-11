@@ -95,7 +95,7 @@ def main():
         block_index = chainman.get_block_index_from_height(block_height)
         block_data = chainman.read_block_from_disk(block_index).data
         block = from_binary(CBlock, block_data)
-        #assert block.is_valid()  # TODO: only do this in a 'thorough' mode
+        assert block.is_valid()
         outputs_bitmap = []
         outputs_in_utxo_set = 0
 
