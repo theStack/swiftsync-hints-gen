@@ -45,7 +45,7 @@ class HintsWriter:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format (should contain a block height index for fast processing)')
+    parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format')
     parser.add_argument('node_datadir', help='path to bitcoin data directory (must be from a non-pruned node)')
     parser.add_argument('output_hints_file', help='filename of created booster hints file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show more detailed conversion stats on each block')
@@ -87,7 +87,9 @@ def main():
 
     print("Open output hints file... ", end='', flush=True)
     hints_file = open(args.output_hints_file, 'wb')
+    print("done.")
     hints_writer = HintsWriter(hints_file)
+    total_outputs_scanned = 0
     total_outputs_utxo_set = 0
 
     for block_height in range(0, snapshot_height+1):
@@ -118,9 +120,11 @@ def main():
 
         hints_writer.write_block_bits(outputs_bitmap)
         took_time = time.time() - start_time
-        print(f"Block {block_height} ({len(block.vtx)} txs, {len(outputs_bitmap)} outs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
+        if args.verbose:
+            print(f"Block {block_height} ({len(block.vtx)} txs, {len(outputs_bitmap)} outs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
+        total_outputs_scanned += len(outputs_bitmap)
         total_outputs_utxo_set += outputs_in_utxo_set
-    print(f"Scan finished, found {total_outputs_utxo_set} outputs in UTXO set.")
+    print(f"Scan finished: from {total_outputs_scanned} outputs in total, found {total_outputs_utxo_set} in the UTXO set.")
 
     con.close()
     hints_file.close()
