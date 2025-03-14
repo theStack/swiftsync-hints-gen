@@ -349,34 +349,6 @@ class CTransaction:
         r += self.nLockTime.to_bytes(4, "little")
         return r
 
-    # Only serialize with witness when explicitly called for
-    def serialize_with_witness(self):
-        flags = 0
-        if not self.wit.is_null():
-            flags |= 1
-        r = b""
-        r += self.version.to_bytes(4, "little")
-        if flags:
-            dummy = []
-            r += ser_vector(dummy)
-            r += flags.to_bytes(1, "little")
-        r += ser_vector(self.vin)
-        r += ser_vector(self.vout)
-        if flags & 1:
-            if (len(self.wit.vtxinwit) != len(self.vin)):
-                # vtxinwit must have the same length as vin
-                self.wit.vtxinwit = self.wit.vtxinwit[:len(self.vin)]
-                for _ in range(len(self.wit.vtxinwit), len(self.vin)):
-                    self.wit.vtxinwit.append(CTxInWitness())
-            r += self.wit.serialize()
-        r += self.nLockTime.to_bytes(4, "little")
-        return r
-
-    # Regular serialization is with witness -- must explicitly
-    # call serialize_without_witness to exclude witness data.
-    def serialize(self):
-        return self.serialize_with_witness()
-
     # Recalculate the txid (transaction hash without witness)
     def rehash(self):
         self.sha256 = None
@@ -385,11 +357,7 @@ class CTransaction:
 
     # We will only cache the serialization without witness in
     # self.sha256 and self.hash -- those are expected to be the txid.
-    def calc_sha256(self, with_witness=False):
-        if with_witness:
-            # Don't cache the result, just return it
-            return uint256_from_str(hash256(self.serialize_with_witness()))
-
+    def calc_sha256(self):
         tx_hash = hash256(self.serialize_without_witness())
         if self.sha256 is None:
             self.sha256 = uint256_from_str(tx_hash)
