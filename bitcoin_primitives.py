@@ -390,9 +390,10 @@ class CTransaction:
             # Don't cache the result, just return it
             return uint256_from_str(hash256(self.serialize_with_witness()))
 
+        tx_hash = hash256(self.serialize_without_witness())
         if self.sha256 is None:
-            self.sha256 = uint256_from_str(hash256(self.serialize_without_witness()))
-        self.hash = hash256(self.serialize_without_witness())[::-1].hex()
+            self.sha256 = uint256_from_str(tx_hash)
+        self.hash = tx_hash[::-1].hex()
 
     def is_valid(self):
         self.calc_sha256()
