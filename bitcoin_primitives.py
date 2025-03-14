@@ -491,15 +491,6 @@ class CBlock(CBlockHeader):
         super().deserialize(f)
         self.vtx = deser_vector(f, CTransaction)
 
-    def serialize(self, with_witness=True):
-        r = b""
-        r += super().serialize()
-        if with_witness:
-            r += ser_vector(self.vtx, "serialize_with_witness")
-        else:
-            r += ser_vector(self.vtx, "serialize_without_witness")
-        return r
-
     # Calculate the merkle root given a vector of transaction hashes
     @classmethod
     def get_merkle_root(cls, hashes):
