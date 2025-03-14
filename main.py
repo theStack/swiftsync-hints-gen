@@ -28,7 +28,7 @@ class HintsWriter:
         # for each block, write first the number of outputs it contains
         # and then the bit-encoded data (padded with zero-bits if necessary)
         writebuf = b''
-        writebuf += len(bitmap).to_bytes(2, 'big')
+        writebuf += len(bitmap).to_bytes(2, 'little')
         bitpos = 0
         value = 0
         for bit in bitmap:
