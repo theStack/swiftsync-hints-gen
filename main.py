@@ -42,6 +42,9 @@ class HintsWriter:
             writebuf += bytes([value])
         self.file.write(writebuf)
 
+    def write_end_marker(self):
+        self.file.write(bytes([0, 0]))
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -124,6 +127,7 @@ def main():
             print(f"Block {block_height} ({len(block.vtx)} txs, {len(outputs_bitmap)} outs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
         total_outputs_scanned += len(outputs_bitmap)
         total_outputs_utxo_set += outputs_in_utxo_set
+    hints_writer.write_end_marker()
     print(f"Scan finished: from {total_outputs_scanned} outputs in total, found {total_outputs_utxo_set} in the UTXO set.")
 
     con.close()
