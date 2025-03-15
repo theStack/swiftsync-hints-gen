@@ -421,11 +421,6 @@ class CBlockHeader:
             self.sha256 = uint256_from_str(hash256(r))
             self.hash = hash256(r)[::-1].hex()
 
-    def rehash(self):
-        self.sha256 = None
-        self.calc_sha256()
-        return self.sha256
-
     def __repr__(self):
         return "CBlockHeader(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x)" \
             % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
