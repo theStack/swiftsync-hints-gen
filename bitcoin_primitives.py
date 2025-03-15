@@ -83,31 +83,20 @@ def uint256_from_compact(c):
     return v
 
 
-# deser_function_name: Allow for an alternate deserialization function on the
-# entries in the vector.
-def deser_vector(f, c, deser_function_name=None):
+def deser_vector(f, c):
     nit = deser_compact_size(f)
     r = []
     for _ in range(nit):
         t = c()
-        if deser_function_name:
-            getattr(t, deser_function_name)(f)
-        else:
-            t.deserialize(f)
+        t.deserialize(f)
         r.append(t)
     return r
 
 
-# ser_function_name: Allow for an alternate serialization function on the
-# entries in the vector (we use this for serializing the vector of transactions
-# for a witness block).
-def ser_vector(l, ser_function_name=None):
+def ser_vector(l):
     r = ser_compact_size(len(l))
     for i in l:
-        if ser_function_name:
-            r += getattr(i, ser_function_name)()
-        else:
-            r += i.serialize()
+        r += i.serialize()
     return r
 
 
