@@ -350,7 +350,6 @@ class CTransaction:
         self.hash = tx_hash[::-1].hex()
 
     def is_valid(self):
-        self.calc_sha256()
         for tout in self.vout:
             if tout.nValue < 0 or tout.nValue > 21000000 * COIN:
                 return False
