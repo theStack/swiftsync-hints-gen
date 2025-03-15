@@ -125,13 +125,6 @@ def deser_string_vector(f):
     return r
 
 
-def ser_string_vector(l):
-    r = ser_compact_size(len(l))
-    for sv in l:
-        r += ser_string(sv)
-    return r
-
-
 def from_binary(cls, data):
     """deserialize bytes into an object of given class"""
     # handle bytes object by turning it into a stream
@@ -243,9 +236,6 @@ class CTxInWitness:
     def deserialize(self, f):
         self.scriptWitness.stack = deser_string_vector(f)
 
-    def serialize(self):
-        return ser_string_vector(self.scriptWitness.stack)
-
     def __repr__(self):
         return repr(self.scriptWitness)
 
@@ -262,15 +252,6 @@ class CTxWitness:
     def deserialize(self, f):
         for i in range(len(self.vtxinwit)):
             self.vtxinwit[i].deserialize(f)
-
-    def serialize(self):
-        r = b""
-        # This is different than the usual vector serialization --
-        # we omit the length of the vector, which is required to be
-        # the same length as the transaction's vin vector.
-        for x in self.vtxinwit:
-            r += x.serialize()
-        return r
 
     def __repr__(self):
         return "CTxWitness(%s)" % \
