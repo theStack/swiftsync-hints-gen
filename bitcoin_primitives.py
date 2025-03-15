@@ -132,17 +132,14 @@ def ser_string_vector(l):
     return r
 
 
-# like from_hex, but without the hex part
-def from_binary(cls, stream):
-    """deserialize a binary stream (or bytes object) into an object"""
+def from_binary(cls, data):
+    """deserialize bytes into an object of given class"""
     # handle bytes object by turning it into a stream
-    was_bytes = isinstance(stream, bytes)
-    if was_bytes:
-        stream = BytesIO(stream)
+    assert isinstance(data, bytes)
+    stream = BytesIO(data)
     obj = cls()
     obj.deserialize(stream)
-    if was_bytes:
-        assert len(stream.read()) == 0
+    assert len(stream.read()) == 0
     return obj
 
 
