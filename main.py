@@ -48,18 +48,18 @@ class HintsWriter:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format')
     parser.add_argument('node_datadir', help='path to bitcoin data directory (must be from a non-pruned node)')
+    parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format')
     parser.add_argument('output_hints_file', help='filename of created booster hints file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show more detailed conversion stats on each block')
     args = parser.parse_args()
 
-    if not Path(args.utxos_sqlite_db).exists():
-        print(f"Error: provided input file '{args.utxos_sqlite_db}' doesn't exist.")
-        sys.exit(1)
-
     if not Path(args.node_datadir).exists():
         print(f"Error: provided input directory '{args.node_datadir}' doesn't exist.")
+        sys.exit(1)
+
+    if not Path(args.utxos_sqlite_db).exists():
+        print(f"Error: provided input file '{args.utxos_sqlite_db}' doesn't exist.")
         sys.exit(1)
 
     if Path(args.output_hints_file).exists():
