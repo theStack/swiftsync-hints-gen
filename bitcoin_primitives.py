@@ -221,11 +221,6 @@ class CScriptWitness:
         return "CScriptWitness(%s)" % \
                (",".join([x.hex() for x in self.stack]))
 
-    def is_null(self):
-        if self.stack:
-            return False
-        return True
-
 
 class CTxInWitness:
     __slots__ = ("scriptWitness",)
@@ -238,9 +233,6 @@ class CTxInWitness:
 
     def __repr__(self):
         return repr(self.scriptWitness)
-
-    def is_null(self):
-        return self.scriptWitness.is_null()
 
 
 class CTxWitness:
@@ -256,12 +248,6 @@ class CTxWitness:
     def __repr__(self):
         return "CTxWitness(%s)" % \
                (';'.join([repr(x) for x in self.vtxinwit]))
-
-    def is_null(self):
-        for x in self.vtxinwit:
-            if not x.is_null():
-                return False
-        return True
 
 
 class CTransaction:
