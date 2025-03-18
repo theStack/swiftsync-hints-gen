@@ -84,8 +84,8 @@ def main():
     datadir = Path(args.node_datadir)
     print("Loading chain manager... ", end='', flush=True)
     # TODO: allow specifying the chaint type (unfortunately, the UTXO db doesn't contain that as metadata yet :/)
-    #chainman = pbk.load_chainman(datadir, pbk.ChainType.MAINNET)
-    chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
+    chainman = pbk.load_chainman(datadir, pbk.ChainType.MAINNET)
+    #chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
     print("done.")
 
     print("Open output hints file... ", end='', flush=True)
@@ -105,26 +105,35 @@ def main():
         outputs_in_utxo_set = 0
 
         txid_vouts = {}
-        cur.execute("SELECT txid, vout FROM utxos WHERE height=?", (block_height,))
-        for txid, vout in cur.fetchall():
-            if txid not in txid_vouts:
-                txid_vouts[txid] = [vout]
-            else:
-                txid_vouts[txid].append(vout)
+        #cur.execute("SELECT txid, vout FROM utxos WHERE height=?", (block_height,))
+        t1 = time.time()
+        cur.execute("SELECT txid, group_concat(vout) FROM utxos WHERE height=? GROUP BY txid", (block_height,))
+        result = cur.fetchall()
+        #print(f"fetch took {(time.time()-t1):.3f}s")
+        #print(result)
+        t2 = time.time()
+        for txid_str, vouts in result:
+            vouts_list = [int(vout_str) for vout_str in vouts.split(',')]
+            txid = bytes.fromhex(txid_str)[::-1]
+            assert txid not in txid_vouts
+            txid_vouts[txid] = vouts_list
+        #print(f"txid->vout map building took {(time.time()-t2):.3f}s")
 
+        t3 = time.time()
         for tx in block.vtx:
-            txid = tx.rehash()
+            txid = tx.sha256
             outputs_bitmap_extended = [0]*len(tx.vout)
             if txid in txid_vouts:
                 for vout in txid_vouts[txid]:
                     outputs_bitmap_extended[vout] = 1
                 outputs_in_utxo_set += sum(outputs_bitmap_extended)
             outputs_bitmap.extend(outputs_bitmap_extended)
+        #print(f"bitmap creation took {(time.time()-t3):.3f}s")
 
         hints_writer.write_block_bits(outputs_bitmap)
         took_time = time.time() - start_time
         if args.verbose:
-            print(f"Block {block_height} ({len(block.vtx)} txs, {len(outputs_bitmap)} outs) has {outputs_in_utxo_set} outputs in UTXO set [{took_time:.3f}s].")
+            print(f"Block {block_height: >7} ({len(block.vtx): >5} txs, {len(outputs_bitmap): >5} outs) has {outputs_in_utxo_set: >5} outputs in UTXO set [{took_time:.3f}s].")
         total_outputs_scanned += len(outputs_bitmap)
         total_outputs_utxo_set += outputs_in_utxo_set
     hints_writer.write_end_marker()

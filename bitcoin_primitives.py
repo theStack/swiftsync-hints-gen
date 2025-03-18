@@ -262,14 +262,12 @@ class CTransaction:
             self.wit = CTxWitness()
             self.nLockTime = 0
             self.sha256 = None
-            self.hash = None
         else:
             self.version = tx.version
             self.vin = copy.deepcopy(tx.vin)
             self.vout = copy.deepcopy(tx.vout)
             self.nLockTime = tx.nLockTime
             self.sha256 = tx.sha256
-            self.hash = tx.hash
             self.wit = copy.deepcopy(tx.wit)
 
     def deserialize(self, f):
@@ -292,7 +290,6 @@ class CTransaction:
             self.wit = CTxWitness()
         self.nLockTime = int.from_bytes(f.read(4), "little")
         self.sha256 = None
-        self.hash = None
 
     def serialize_without_witness(self):
         r = b""
@@ -302,19 +299,11 @@ class CTransaction:
         r += self.nLockTime.to_bytes(4, "little")
         return r
 
-    # Recalculate the txid (transaction hash without witness)
-    def rehash(self):
-        self.sha256 = None
-        self.calc_sha256()
-        return self.hash
-
     # We will only cache the serialization without witness in
     # self.sha256 and self.hash -- those are expected to be the txid.
     def calc_sha256(self):
-        tx_hash = hash256(self.serialize_without_witness())
         if self.sha256 is None:
-            self.sha256 = uint256_from_str(tx_hash)
-        self.hash = tx_hash[::-1].hex()
+            self.sha256 = hash256(self.serialize_without_witness())
 
     def is_valid(self):
         for tout in self.vout:
@@ -415,13 +404,13 @@ class CBlock(CBlockHeader):
                 i2 = min(i+1, len(hashes)-1)
                 newhashes.append(hash256(hashes[i] + hashes[i2]))
             hashes = newhashes
-        return uint256_from_str(hashes[0])
+        return hashes[0]
 
     def calc_merkle_root(self):
         hashes = []
         for tx in self.vtx:
             tx.calc_sha256()
-            hashes.append(ser_uint256(tx.sha256))
+            hashes.append(tx.sha256)
         return self.get_merkle_root(hashes)
 
     def is_valid(self):
@@ -432,7 +421,7 @@ class CBlock(CBlockHeader):
         for tx in self.vtx:
             if not tx.is_valid():
                 return False
-        if self.calc_merkle_root() != self.hashMerkleRoot:
+        if self.calc_merkle_root() != ser_uint256(self.hashMerkleRoot):
             return False
         return True
 
