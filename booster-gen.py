@@ -121,8 +121,9 @@ def main():
         for tx in block.vtx:
             txid = tx.sha256
             outputs_bitmap_extended = [0]*len(tx.vout)
-            if txid in txid_vouts:
-                for vout in txid_vouts[txid]:
+            vouts = txid_vouts.get(txid)
+            if vouts is not None:
+                for vout in vouts:
                     outputs_bitmap_extended[vout] = 1
                 del txid_vouts[txid]
                 outputs_in_utxo_set += sum(outputs_bitmap_extended)
