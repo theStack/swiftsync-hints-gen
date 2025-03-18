@@ -105,12 +105,10 @@ def main():
         outputs_in_utxo_set = 0
 
         txid_vouts = {}
-        #cur.execute("SELECT txid, vout FROM utxos WHERE height=?", (block_height,))
         t1 = time.time()
         cur.execute("SELECT txid, group_concat(vout) FROM utxos WHERE height=? GROUP BY txid", (block_height,))
         result = cur.fetchall()
         #print(f"fetch took {(time.time()-t1):.3f}s")
-        #print(result)
         t2 = time.time()
         for txid_str, vouts in result:
             vouts_list = [int(vout_str) for vout_str in vouts.split(',')]
@@ -126,6 +124,7 @@ def main():
             if txid in txid_vouts:
                 for vout in txid_vouts[txid]:
                     outputs_bitmap_extended[vout] = 1
+                del txid_vouts[txid]
                 outputs_in_utxo_set += sum(outputs_bitmap_extended)
             outputs_bitmap.extend(outputs_bitmap_extended)
         #print(f"bitmap creation took {(time.time()-t3):.3f}s")
