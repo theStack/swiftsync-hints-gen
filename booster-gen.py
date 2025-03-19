@@ -125,8 +125,8 @@ def main():
             if vouts is not None:
                 for vout in vouts:
                     outputs_bitmap_extended[vout] = 1
+                outputs_in_utxo_set += len(vouts)
                 del txid_vouts[txid]
-                outputs_in_utxo_set += sum(outputs_bitmap_extended)
             outputs_bitmap.extend(outputs_bitmap_extended)
         #print(f"bitmap creation took {(time.time()-t3):.3f}s")
 
