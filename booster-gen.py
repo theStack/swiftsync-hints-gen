@@ -100,7 +100,7 @@ def main():
         block_index = chainman.get_block_index_from_height(block_height)
         block_data = chainman.read_block_from_disk(block_index).data
         block = from_binary(CBlock, block_data)
-        assert block.is_valid()
+        #assert block.is_valid()
         outputs_bitmap = []
         outputs_in_utxo_set = 0
 
@@ -119,6 +119,7 @@ def main():
 
         t3 = time.time()
         for tx in block.vtx:
+            tx.calc_sha256()
             txid = tx.sha256
             outputs_bitmap_extended = [0]*len(tx.vout)
             vouts = txid_vouts.get(txid)
