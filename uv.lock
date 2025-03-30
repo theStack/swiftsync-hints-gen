@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 
 [[package]]
@@ -14,5 +15,5 @@ requires-dist = [{ name = "py-bitcoinkernel", git = "https://github.com/stickies
 
 [[package]]
 name = "py-bitcoinkernel"
-version = "0.1.0a2"
-source = { git = "https://github.com/stickies-v/py-bitcoinkernel#c26d23d4c0aefd10b90928a4d3fa2a157a59bcfe" }
+version = "0.1.0a3"
+source = { git = "https://github.com/stickies-v/py-bitcoinkernel#8c804b348291665319d2b6b2cf10e4f26cea0c5a" }
