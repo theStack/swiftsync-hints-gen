@@ -52,6 +52,8 @@ def main():
     parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format')
     parser.add_argument('output_hints_file', help='filename of created booster hints file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show more detailed conversion stats on each block')
+    parser.add_argument('--chain', default='mainnet', help='chain to use (mainnet by default; allowed values: mainnet, signet, testnet4, testnet, regtest)')
+
     args = parser.parse_args()
 
     if not Path(args.node_datadir).exists():
@@ -64,6 +66,17 @@ def main():
 
     if Path(args.output_hints_file).exists():
         print(f"Error: provided output file '{args.output_hints_file}' already exists.")
+        sys.exit(1)
+
+    chaintype = {
+        'mainnet':  pbk.ChainType.MAINNET,
+        'signet':   pbk.ChainType.SIGNET,
+        'testnet4': pbk.ChainType.TESTNET_4,
+        'testnet':  pbk.ChainType.TESTNET,
+        'regtest':  pbk.ChainType.REGTEST,
+    }.get(args.chain)
+    if chaintype is None:
+        print(f"Error: provided invalid chain type '{args.chain}'.")
         sys.exit(1)
 
     #log = pbk.LoggingConnection()
@@ -83,9 +96,7 @@ def main():
     #datadir = Path.home() / ".bitcoin"
     datadir = Path(args.node_datadir)
     print("Loading chain manager... ", end='', flush=True)
-    # TODO: allow specifying the chaint type (unfortunately, the UTXO db doesn't contain that as metadata yet :/)
-    chainman = pbk.load_chainman(datadir, pbk.ChainType.MAINNET)
-    #chainman = pbk.load_chainman(datadir, pbk.ChainType.SIGNET)
+    chainman = pbk.load_chainman(datadir, chaintype)
     print("done.")
 
     print("Open output hints file... ", end='', flush=True)
