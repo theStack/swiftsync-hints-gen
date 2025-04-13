@@ -1,6 +1,6 @@
-## IBD Booster hints file generator
+## SwiftSync hints file generator
 
-Tool to create a binary-encoded hints file for the "IBD Booster" proposal.
+Tool to create a binary-encoded hints file for the "SwiftSync" proposal.
 
 The resulting data is a bit-vector of all transaction outputs ever created
 up to block number N, where each bit indicates the answer to the question
