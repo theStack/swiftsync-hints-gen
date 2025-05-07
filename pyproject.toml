@@ -1,5 +1,5 @@
 [project]
-name = "ibd-booster-hints-gen"
+name = "swiftsync-hints-gen"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

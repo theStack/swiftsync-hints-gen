@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tool to create a binary-encoded hints file for the "IBD-Booster" proposal.
+"""Tool to create a binary-encoded hints file for the "SwiftSync" proposal.
 
 The resulting data is a bit-vector of all transaction outputs ever created
 up to block number N, where each bit indicates the answer to the question
@@ -50,7 +50,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('node_datadir', help='path to bitcoin data directory (must be from a non-pruned node)')
     parser.add_argument('utxos_sqlite_db', help='path to UTXO dump in SQLite3 format')
-    parser.add_argument('output_hints_file', help='filename of created booster hints file')
+    parser.add_argument('output_hints_file', help='filename of created SwiftSync hints file')
     parser.add_argument('-v', '--verbose', action='store_true', help='show more detailed conversion stats on each block')
     parser.add_argument('--chain', default='mainnet', help='chain to use (mainnet by default; allowed values: mainnet, signet, testnet4, testnet, regtest)')
 
